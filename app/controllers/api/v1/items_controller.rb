@@ -25,6 +25,11 @@ class Api::V1::ItemsController < ApplicationController
       render_not_updated_response
     end
   end
+
+  def destroy
+    item = Item.find(params[:id])
+    item.destroy
+  end
    
   private
 
