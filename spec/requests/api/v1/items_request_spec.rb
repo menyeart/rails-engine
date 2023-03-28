@@ -47,4 +47,39 @@ describe "Rails API" do
     expect(item[:message]).to eq("your query could not be completed")
     expect(item[:error]).to eq("Couldn't find Item with 'id'=1")
   end
+
+  it "it can create an item" do
+    merchant_1 = create(:merchant, id: 5)
+    item_params = ({
+      name: 'Thingy from Amazon',
+      description: 'Whateva',
+      unit_price: 120.50,
+      merchant_id: 5
+    })
+    headers = {"CONTENT_TYPE" => "application/json"}
+
+    post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
+    item = Item.last
+    expect(response).to be_successful
+    expect(item.name).to eq(item_params[:name])
+    expect(item.description).to eq(item_params[:description])
+    expect(item.unit_price).to eq(item_params[:unit_price])
+    expect(item.merchant_id).to eq(item_params[:merchant_id])
+  end
+
+  it "it shows an error if an item cannot be created" do
+    merchant_1 = create(:merchant, id: 5)
+    item_params = ({
+      description: 'Whateva',
+      unit_price: 120.50,
+      merchant_id: 5
+    })
+    headers = {"CONTENT_TYPE" => "application/json"}
+    
+    response = post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
+    item = Item.last
+    binding.pry
+    expect(item).to eq(nil)
+
+  end
 end
