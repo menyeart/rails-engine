@@ -16,9 +16,16 @@ class Api::V1::ItemsController < ApplicationController
       render_not_created_response
     end
   end
+
+  def update
+    item = Item.find(params[:id])
+    if item.update(item_params)
+      render json: ItemSerializer.new(item), status: 201
+    else
+      render_not_updated_response
+    end
+  end
    
-
-
   private
 
   def item_params
