@@ -95,7 +95,18 @@ describe "Rails API" do
     expect(response).to be_successful
     expect(item.name).to_not eq(previous_name)
     expect(item.name).to eq('Thingy from Amazon')
+  end
 
-
+  it "it can destroy an item" do
+    merchant_1 = create(:merchant, id: 5)
+    item_1 = create(:item, merchant_id: 5)
+    
+    expect(Item.count).to eq(1)
+    
+    delete "/api/v1/items/#{item_1.id}"
+  
+    expect(response).to be_successful
+    expect(Item.count).to eq(0)
+    expect{Item.find(item_1.id)}.to raise_error(ActiveRecord::RecordNotFound)
   end
 end
