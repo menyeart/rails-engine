@@ -58,7 +58,7 @@ describe "Rails API" do
 
     it "it shows an error if there is no merchant with the id" do
       id = create(:merchant).id
-      get "/api/v1/merchants/1"
+      get "/api/v1/merchants/1/items"
       merchant = JSON.parse(response.body, symbolize_names: true)
      
       expect(merchant[:message]).to eq("your query could not be completed")
