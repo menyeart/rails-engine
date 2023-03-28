@@ -109,4 +109,30 @@ describe "Rails API" do
     expect(Item.count).to eq(0)
     expect{Item.find(item_1.id)}.to raise_error(ActiveRecord::RecordNotFound)
   end
+
+  it "it can list a merchant associated with the item" do
+    merchant_1 = create(:merchant, id: 5)
+    item_1 = create(:item, merchant_id: 5)
+    
+    get "/api/v1/items/#{item_1.id}/merchant"
+    merchant = JSON.parse(response.body, symbolize_names: true)
+  
+    expect(response).to be_successful
+    expect(merchant[:data]).to have_key(:id)
+    expect(merchant[:data][:attributes][:name]).to be_a(String)
+    expect(merchant[:data][:attributes][:name]).to eq(merchant_1.name)
+  end
+
+  it "it returns an error if the item isn't found" do
+    merchant_1 = create(:merchant, id: 5)
+    item_1 = create(:item, merchant_id: 5)
+    
+    get "/api/v1/items/12/merchant"
+
+    merchant = JSON.parse(response.body, symbolize_names: true)
+    
+    expect(merchant[:data]).to have_key(:id)
+    expect(merchant[:data][:id]).to be(nil)
+    expect(merchant[:message]).to eq("your query could not be completed")
+  end
 end
