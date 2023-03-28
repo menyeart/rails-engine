@@ -5,6 +5,10 @@ class ApplicationController < ActionController::API
     render json: { message: "your query could not be completed", error: exception.message }, status: :not_found
   end
 
+  def render_not_created_response
+    render json: { message: "your query could not be completed", error: "Object creation could not be completed" }, status: 400
+  end
+
   # def render_not_found_response
   #   render json: {
   #     "id": nil,
