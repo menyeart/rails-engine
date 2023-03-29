@@ -29,6 +29,7 @@ class Api::V1::ItemsController < ApplicationController
   def destroy
     item = Item.find(params[:id])
     item.destroy
+    item.invoices_only_item.destroy_all
   end
 
   def find_all
@@ -51,7 +52,6 @@ class Api::V1::ItemsController < ApplicationController
       items =Item.search_by_name(params[:name].downcase)
       render json: ItemSerializer.new(items)
     end 
-
   end
    
   private
@@ -59,5 +59,4 @@ class Api::V1::ItemsController < ApplicationController
   def item_params
     params.require(:item).permit(:name, :description, :unit_price, :merchant_id )
   end
-
 end
