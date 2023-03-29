@@ -167,7 +167,16 @@ describe "Rails API" do
     expect(error).to have_key(:errors)
     expect(error[:message]).to eq("your query could not be completed")
   end
-    
 
-
+  it "destroys any invoice it was related to if it was the only item" do
+    cust_id = create(:customer).id
+    merch_id = create(:merchant).id
+    item = create(:item, merchant_id: merch_id, name: "laptop", unit_price: 100.99, merchant_id: merch_id )
+    invoice = create(:invoice, merchant_id: merch_id, customer_id: cust_id)
+    invoice_item = create(:invoice_item, item_id: item.id, invoice_id: invoice.id)
+    delete "/api/v1/items/#{item.id}"
+   
+    expect(Item.exists?(item.id)).to be(false)
+    expect(InvoiceItem.exists?(invoice.id)).to be(false)
+  end
 end
