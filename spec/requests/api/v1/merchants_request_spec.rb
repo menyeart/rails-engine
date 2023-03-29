@@ -35,7 +35,8 @@ describe "Rails API" do
       id = create(:merchant).id
       get "/api/v1/merchants/1"
       merchant = JSON.parse(response.body, symbolize_names: true)
-     
+
+      expect(merchant[:data][:id]).to eq(nil)
       expect(merchant[:message]).to eq("your query could not be completed")
       # expect(merchant[:error]).to eq("Couldn't find Merchant with 'id'=1")
     end
@@ -60,7 +61,8 @@ describe "Rails API" do
       id = create(:merchant).id
       get "/api/v1/merchants/1/items"
       merchant = JSON.parse(response.body, symbolize_names: true)
-     
+
+      expect(merchant[:data][:id]).to eq(nil)
       expect(merchant[:message]).to eq("your query could not be completed")
     end
 
@@ -87,10 +89,7 @@ describe "Rails API" do
       get "/api/v1/merchants/find?name=bob"
       
       merchant = JSON.parse(response.body, symbolize_names: true)
-      binding.pry
-      expect(merchant[:data]).to have_key(:id)
-      expect(merchant[:data][:id].to_i).to eq(matthew.id)
-      expect(merchant[:data][:attributes][:name]).to be_a(String)
-      expect(merchant[:data][:attributes][:name]).to eq("Matthew")
+      expect(merchant[:message]).to eq("your query could not be completed")
+      expect(merchant[:data][:id]).to eq(nil)
     end
 end

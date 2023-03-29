@@ -72,7 +72,7 @@ describe "Rails API" do
     merchant_1 = create(:merchant, id: 5)
     item_params = ({
       description: 'Whateva',
-      unit_price: 120.50,
+      unit_unit_price: 120.50,
       merchant_id: 5
     })
     headers = {"CONTENT_TYPE" => "application/json"}
@@ -135,4 +135,39 @@ describe "Rails API" do
     expect(merchant[:data][:id]).to be(nil)
     expect(merchant[:message]).to eq("your query could not be completed")
   end
+
+  it "can search for items with parameters" do
+    id = create(:merchant).id
+    item_1 = create(:item, merchant_id: 5, name: "laptop", unit_price: 100.99, merchant_id: id )
+    item_2 = create(:item, merchant_id: 5, name: "camera", unit_price: 200.50, merchant_id: id )
+    item_3 = create(:item, merchant_id: 5, name: "espresso machine", unit_price: 12.99, merchant_id: id )
+    item_4 = create(:item, merchant_id: 5, name: "tide pods", unit_price: 1000.20, merchant_id: id )
+    item_5 = create(:item, merchant_id: 5, name: "shirt", unit_price: 3.99, merchant_id: id )
+    
+    get "/api/v1/items/find_all?name=top"
+
+    items = JSON.parse(response.body, symbolize_names: true)
+    expect(response).to be_successful
+    items[:data].each do |item|
+      expect(item).to have_key(:id)
+      expect(item[:attributes]).to have_key(:name)
+      expect(item[:attributes][:name]).to be_a(String)
+      expect(item[:attributes]).to have_key(:description)
+      expect(item[:attributes][:description]).to be_a(String)
+      expect(item[:attributes]).to have_key(:unit_price)
+      expect(item[:attributes][:unit_price]).to be_a(Float)
+    end
+  end
+
+  it "shows an error if name and max price are given" do
+
+    get "/api/v1/items/find_all?name=matt&max_price=20"
+    error = JSON.parse(response.body, symbolize_names: true)
+
+    expect(error).to have_key(:errors)
+    expect(error[:message]).to eq("your query could not be completed")
+  end
+    
+
+
 end

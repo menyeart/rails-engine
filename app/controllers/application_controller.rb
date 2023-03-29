@@ -13,6 +13,10 @@ class ApplicationController < ActionController::API
     render json: { message: "your query could not be completed", error: "Object update could not be completed" }, status: 400
   end
 
+  def bad_params_response
+    render json: { message: "your query could not be completed", errors: "Object search could not be completed" }, status: 400
+  end
+
   def render_error(error)
     render json: ErrorSerializer.new(error).serialize, status: 404
   end
