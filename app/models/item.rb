@@ -31,7 +31,4 @@ class Item < ApplicationRecord
 
   private
 
-  # def cleanup
-  #   self.invoice_items.destroy_all &&  self.invoices.destroy_all if self.invoices.count == 1
-  # end
 end
