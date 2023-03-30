@@ -44,8 +44,9 @@ describe "Rails API" do
     get "/api/v1/items/1"
   
     item = JSON.parse(response.body, symbolize_names: true)
-   
-    expect(item[:message]).to eq("your query could not be completed")
+
+    expect(response).to_not be_successful
+    expect(item[:message]).to eq("Couldn't find Item with 'id'=1")
   end
 
   it "it can create an item" do
@@ -60,6 +61,7 @@ describe "Rails API" do
 
     post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
     item = Item.last
+
     expect(response).to be_successful
     expect(item.name).to eq(item_params[:name])
     expect(item.description).to eq(item_params[:description])
@@ -96,6 +98,23 @@ describe "Rails API" do
     expect(item.name).to eq('Thingy from Amazon')
   end
 
+  it "renders an error if incorrect parameters are used for an update" do
+    merchant_1 = create(:merchant, id: 5)
+    item_1 = create(:item, merchant_id: 5)
+    previous_name = item_1.name
+    item_params = ({description: ''})
+    
+    headers = {"CONTENT_TYPE" => "application/json"}
+    patch "/api/v1/items/#{item_1.id}", headers: headers, params: JSON.generate(item: item_params)
+    item = Item.find_by(id: item_1.id)
+    error = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to_not be_successful
+    expect(error[:message]).to eq("your query could not be completed")
+    expect(error[:error]).to eq("Object update could not be completed")
+
+  end
+
   it "it can destroy an item" do
     merchant_1 = create(:merchant, id: 5)
     item_1 = create(:item, merchant_id: 5)
@@ -130,9 +149,10 @@ describe "Rails API" do
 
     merchant = JSON.parse(response.body, symbolize_names: true)
     
-    expect(merchant[:data]).to have_key(:id)
-    expect(merchant[:data][:id]).to be(nil)
-    expect(merchant[:message]).to eq("your query could not be completed")
+    expect(response).to_not be_successful
+    expect(merchant[:error]).to have_key(:id)
+    expect(merchant[:error][:id]).to be(nil)
+    expect(merchant[:message]).to eq("Couldn't find Item with 'id'=12")
   end
 
   it "can search for items with a name parameter" do
@@ -181,7 +201,7 @@ describe "Rails API" do
     end
   end
 
-  it "can search for items with a single price parameter" do
+  it "can search for items with a minimum price parameter" do
     id = create(:merchant).id
     item_1 = create(:item, name: "laptop", unit_price: 100.99, merchant_id: id )
     item_2 = create(:item, name: "camera", unit_price: 200.50, merchant_id: id )
@@ -204,8 +224,30 @@ describe "Rails API" do
     end
   end
 
-  it "shows an error if name and max price are given" do
+  it "can search for items with a maximum price parameter" do
+    id = create(:merchant).id
+    item_1 = create(:item, name: "laptop", unit_price: 100.99, merchant_id: id )
+    item_2 = create(:item, name: "camera", unit_price: 200.50, merchant_id: id )
+    item_3 = create(:item, name: "espresso machine", unit_price: 12.99, merchant_id: id )
+    item_4 = create(:item, name: "tide pods", unit_price: 1000.20, merchant_id: id )
+    item_5 = create(:item, name: "shirt", unit_price: 3.99, merchant_id: id )
+    
+    get "/api/v1/items/find_all?max_price=5"
 
+    items = JSON.parse(response.body, symbolize_names: true)
+    expect(response).to be_successful
+    items[:data].each do |item|
+      expect(item).to have_key(:id)
+      expect(item[:attributes]).to have_key(:name)
+      expect(item[:attributes][:name]).to be_a(String)
+      expect(item[:attributes]).to have_key(:description)
+      expect(item[:attributes][:description]).to be_a(String)
+      expect(item[:attributes]).to have_key(:unit_price)
+      expect(item[:attributes][:unit_price]).to be_a(Float)
+    end
+  end
+
+  it "shows an error if name and max price are given" do
     get "/api/v1/items/find_all?name=matt&max_price=20"
     error = JSON.parse(response.body, symbolize_names: true)
 
@@ -223,5 +265,23 @@ describe "Rails API" do
    
     expect(Item.exists?(item.id)).to be(false)
     expect(InvoiceItem.exists?(invoice.id)).to be(false)
+  end
+
+  it "shows an error if max or min price are under 0" do
+    get "/api/v1/items/find_all?name=matt&max_price=-5"
+    error = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to_not be_successful
+    expect(error).to have_key(:errors)
+    expect(error[:message]).to eq("your query could not be completed")
+  end
+
+  it "shows an error if addtional keys beyond those specificied are entered" do
+    get "/api/v1/items/find_all?name=matt&max_price=5&type=electronics"
+    error = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to_not be_successful
+    expect(error).to have_key(:errors)
+    expect(error[:message]).to eq("your query could not be completed")
   end
 end
