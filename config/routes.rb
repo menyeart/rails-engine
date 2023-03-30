@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
 
-  get "/api/v1/merchants/find", to: "api/v1/merchants#find"
-  get "/api/v1/items/find_all", to: "api/v1/items#find_all"
+  get "/api/v1/merchants/find", to: "api/v1/find#show"
+  get "/api/v1/items/find_all", to: "api/v1/find_all#index"
 
   namespace :api do
     namespace :v1 do
