@@ -31,8 +31,9 @@ describe "Rails API" do
       get "/api/v1/merchants/1"
       merchant = JSON.parse(response.body, symbolize_names: true)
 
-      expect(merchant[:data][:id]).to eq(nil)
-      expect(merchant[:message]).to eq("your query could not be completed")
+      expect(response).to_not be_successful
+      expect(merchant[:error][:id]).to eq(nil)
+      expect(merchant[:message]).to eq("Couldn't find Merchant with 'id'=1")
     end
 
     it "it can list all of a merchants items" do
@@ -58,8 +59,9 @@ describe "Rails API" do
 
       merchant = JSON.parse(response.body, symbolize_names: true)
 
-      expect(merchant[:data][:id]).to eq(nil)
-      expect(merchant[:message]).to eq("your query could not be completed")
+      expect(response).to_not be_successful
+      expect(merchant[:error][:id]).to eq(nil)
+      expect(merchant[:message]).to eq("Couldn't find Merchant with 'id'=1")
     end
 
     it "it can find a single merchant by searching for a merchants name" do
@@ -76,7 +78,7 @@ describe "Rails API" do
       expect(merchant[:data][:attributes][:name]).to eq("Matthew")
     end
 
-    it "it renders an error if no merchants are found with the given name" do
+    it "it renders a successful response with no merchants found" do
       matty = create(:merchant, name: "Matty")
       mattias = create(:merchant, name: "Mattias")
       matthew = create(:merchant, name: "Matthew")
@@ -84,7 +86,9 @@ describe "Rails API" do
       get "/api/v1/merchants/find?name=bob"
       
       merchant = JSON.parse(response.body, symbolize_names: true)
-      expect(merchant[:message]).to eq("your query could not be completed")
-      expect(merchant[:data][:id]).to eq(nil)
+
+      expect(response).to be_successful
+      expect(merchant[:data]).to eq({})
+      expect(merchant[:message]).to eq("Object not found")
     end
 end

@@ -7,11 +7,18 @@ class ErrorSerializer
 
   def serialize
     {
-      data: {
+      error: {
         id: nil,
         attributes: []
       },
-      message: "your query could not be completed"
+      message: @error.message
+    }
+  end
+
+  def self.error_to_empty
+    {
+      data: {},
+      message: "Object not found"
     }
   end
 end
