@@ -52,5 +52,19 @@ RSpec.describe Item, type: :model do
       
       expect(Item.search_by_prices(25, 40)).to eq([matthew])
     end
+
+    it "can find all of an item's invoices that only contain that item" do
+      cust_id = create(:customer).id
+      merch_id = create(:merchant).id
+      item = create(:item, merchant_id: merch_id, name: "laptop", unit_price: 100.99 )
+      item_2 = create(:item, merchant_id: merch_id, name: "pager", unit_price: 100.99 )
+      invoice = create(:invoice, merchant_id: merch_id, customer_id: cust_id)
+      invoice_item = create(:invoice_item, item_id: item.id, invoice_id: invoice.id)
+      invoice_2 = create(:invoice, merchant_id: merch_id, customer_id: cust_id)
+      invoice_item2 = create(:invoice_item, item_id: item_2.id, invoice_id: invoice_2.id)
+      invoice_item3 = create(:invoice_item, item_id: item_2.id, invoice_id: invoice_2.id)
+    
+      expect(item.invoices_only_item).to eq([invoice])
+    end
   end
 end
