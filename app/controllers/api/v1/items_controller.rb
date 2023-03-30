@@ -30,6 +30,7 @@ class Api::V1::ItemsController < ApplicationController
     item = Item.find(params[:id])
     item.destroy
     item.invoices_only_item.destroy_all
+    
   end
 
   def find_all

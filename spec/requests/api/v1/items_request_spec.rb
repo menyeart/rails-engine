@@ -46,7 +46,6 @@ describe "Rails API" do
     item = JSON.parse(response.body, symbolize_names: true)
    
     expect(item[:message]).to eq("your query could not be completed")
-    # expect(item[:error]).to eq("Couldn't find Item with 'id'=1")
   end
 
   it "it can create an item" do
@@ -136,15 +135,61 @@ describe "Rails API" do
     expect(merchant[:message]).to eq("your query could not be completed")
   end
 
-  it "can search for items with parameters" do
+  it "can search for items with a name parameter" do
     id = create(:merchant).id
-    item_1 = create(:item, merchant_id: 5, name: "laptop", unit_price: 100.99, merchant_id: id )
-    item_2 = create(:item, merchant_id: 5, name: "camera", unit_price: 200.50, merchant_id: id )
-    item_3 = create(:item, merchant_id: 5, name: "espresso machine", unit_price: 12.99, merchant_id: id )
-    item_4 = create(:item, merchant_id: 5, name: "tide pods", unit_price: 1000.20, merchant_id: id )
-    item_5 = create(:item, merchant_id: 5, name: "shirt", unit_price: 3.99, merchant_id: id )
+    item_1 = create(:item, name: "laptop", unit_price: 100.99, merchant_id: id )
+    item_2 = create(:item, name: "camera", unit_price: 200.50, merchant_id: id )
+    item_3 = create(:item, name: "espresso machine", unit_price: 12.99, merchant_id: id )
+    item_4 = create(:item, name: "tide pods", unit_price: 1000.20, merchant_id: id )
+    item_5 = create(:item, name: "shirt", unit_price: 3.99, merchant_id: id )
     
     get "/api/v1/items/find_all?name=top"
+
+    items = JSON.parse(response.body, symbolize_names: true)
+    expect(response).to be_successful
+    items[:data].each do |item|
+      expect(item).to have_key(:id)
+      expect(item[:attributes]).to have_key(:name)
+      expect(item[:attributes][:name]).to be_a(String)
+      expect(item[:attributes]).to have_key(:description)
+      expect(item[:attributes][:description]).to be_a(String)
+      expect(item[:attributes]).to have_key(:unit_price)
+      expect(item[:attributes][:unit_price]).to be_a(Float)
+    end
+  end
+
+  it "can search for items with multiple price parameters" do
+    id = create(:merchant).id
+    item_1 = create(:item, name: "laptop", unit_price: 100.99, merchant_id: id )
+    item_2 = create(:item, name: "camera", unit_price: 200.50, merchant_id: id )
+    item_3 = create(:item, name: "espresso machine", unit_price: 12.99, merchant_id: id )
+    item_4 = create(:item, name: "tide pods", unit_price: 1000.20, merchant_id: id )
+    item_5 = create(:item, name: "shirt", unit_price: 3.99, merchant_id: id )
+    
+    get "/api/v1/items/find_all?min_price=15&max_price=105"
+
+    items = JSON.parse(response.body, symbolize_names: true)
+    expect(response).to be_successful
+    items[:data].each do |item|
+      expect(item).to have_key(:id)
+      expect(item[:attributes]).to have_key(:name)
+      expect(item[:attributes][:name]).to eq("laptop")
+      expect(item[:attributes]).to have_key(:description)
+      expect(item[:attributes][:description]).to be_a(String)
+      expect(item[:attributes]).to have_key(:unit_price)
+      expect(item[:attributes][:unit_price]).to eq(100)
+    end
+  end
+
+  it "can search for items with a single price parameter" do
+    id = create(:merchant).id
+    item_1 = create(:item, name: "laptop", unit_price: 100.99, merchant_id: id )
+    item_2 = create(:item, name: "camera", unit_price: 200.50, merchant_id: id )
+    item_3 = create(:item, name: "espresso machine", unit_price: 12.99, merchant_id: id )
+    item_4 = create(:item, name: "tide pods", unit_price: 1000.20, merchant_id: id )
+    item_5 = create(:item, name: "shirt", unit_price: 3.99, merchant_id: id )
+    
+    get "/api/v1/items/find_all?min_price=150"
 
     items = JSON.parse(response.body, symbolize_names: true)
     expect(response).to be_successful
@@ -171,7 +216,7 @@ describe "Rails API" do
   it "destroys any invoice it was related to if it was the only item" do
     cust_id = create(:customer).id
     merch_id = create(:merchant).id
-    item = create(:item, merchant_id: merch_id, name: "laptop", unit_price: 100.99, merchant_id: merch_id )
+    item = create(:item, merchant_id: merch_id, name: "laptop", unit_price: 100.99 )
     invoice = create(:invoice, merchant_id: merch_id, customer_id: cust_id)
     invoice_item = create(:invoice_item, item_id: item.id, invoice_id: invoice.id)
     delete "/api/v1/items/#{item.id}"
